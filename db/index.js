@@ -11,7 +11,7 @@ module.exports = new Promise((resolve,reject) =>{
       resolve();
     }else{
       console.log(err);
-      reject();
+      reject(err);
     }
 
   })
