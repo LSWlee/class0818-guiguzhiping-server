@@ -1,45 +1,84 @@
-/**
- * Created by lsw on 2018/12/3 0003.
- */
 const express = require('express');
+const Users = require('../model/users');
+
 const router = new express.Router();
-const Users = require('../model');
-//使用大三方中间件解析请求体参数
-router.use(express.urlencoded({extends:true}))
-router.get('/',(req,res) => {
-  res.send('这是服务器返回的响应1111');
-} );
-//指定发送post请求
-router.post('/register',async (req,res) => {
-  //获取请求参数
-  const {username,password,type} = req.body;
+
+//解析请求体数据
+router.use(express.urlencoded({extended: true}));
+
+router.get('/', (req, res) => {
+  res.send('这是服务器返回的响应222');
+})
+
+//注册
+router.post('/register', async (req, res) => {
+  //获取用户提交请求参数信息
+  const {username, password, type} = req.body;
+  console.log(username, password, type);
+  
   try {
-    //去数据库中查找数据
+    //去数据库查找当前用户是否存在
     const user = await Users.findOne({username});
-    if(user){
+    if (user) {
+      //用户名被注册了
       res.json({
-        code:1,
-        msg:'该用户以存在'
+        code: 1,
+        msg: '此用户已存在'
       })
-    }else{
-      //保存到数据库中
-      const user = await Users.create({username,password,type});
+    } else {
+      //用户可以注册
+      //保存在数据库中
+      const user = await Users.create({username, password, type});
+      //返回成功的响应
       res.json({
-        code:0,
-        data:{
-          username:user.username,
-          type:user.type,
-          _id:user._id
+        code: 0,
+        data: {
+          username: user.username,
+          _id: user.id,
+          type: user.type
         }
       })
     }
   } catch (e) {
-    console.log(e)
+    console.log(e);
     res.json({
-      cond:1,
-      msg:'网络不稳定请重试'
+      code: 2,
+      msg: '网络不稳定，请刷新试试~'
     })
   }
-});
+})
 
+//登陆
+router.post('/login', async (req, res) => {
+  //获取用户提交请求参数信息
+  const {username, password} = req.body;
+  console.log(username, password,);
+
+  try {
+    //去数据库查找当前用户是否存在
+    const user = await Users.findOne({username,password});
+    if (user) {
+      //登陆成功
+      res.json({
+        code: 0,
+        data:{
+          _id:user.id,
+          type:user.type,
+          username:user.user
+        }
+      })
+    } else {
+      res.json({
+        code: 1,
+        msg:'用户名或密码错误'
+      })
+    }
+  } catch (e) {
+    console.log(e);
+    res.json({
+      code: 2,
+      msg: '网络不稳定，请刷新试试~'
+    })
+  }
+})
 module.exports = router;
